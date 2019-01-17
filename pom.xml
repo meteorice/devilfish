@@ -7,7 +7,7 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <name>java8</name>
+    <name>devilfish</name>
     <url>http://maven.apache.org</url>
 
     <parent>

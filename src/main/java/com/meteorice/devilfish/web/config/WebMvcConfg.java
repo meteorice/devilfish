@@ -9,6 +9,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.MappedInterceptor;
 
+/**
+ * The type Web mvc confg.
+ */
 @Configuration
 public class WebMvcConfg implements WebMvcConfigurer {
 

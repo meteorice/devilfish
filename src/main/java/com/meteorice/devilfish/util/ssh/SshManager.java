@@ -35,12 +35,40 @@ public class SshManager {
 
     /**
      * 获取令牌号
+     * TODO:以后要改成从数据库取，用存取异步的阻塞队列来发放，一次取一段数据缓冲
+     *
      * @return
      */
     public static String getToken() {
         LocalDate now = LocalDate.now();
         String format = now.format(dateTimeFormatter);
-        return String.format("%s_%04d",format, tokenIds.addAndGet(1));
+        return String.format("%s_%04d", format, tokenIds.addAndGet(1));
+    }
+
+
+    /**
+     * Gets ssh session.
+     *
+     * @param userName the user name
+     * @param passwd   the passwd
+     * @param host     the host
+     * @param port     the port
+     * @return the ssh session
+     */
+    public static Session getSshSession(String userName, String passwd, String host, int port) {
+        JSch jsch = new JSch();
+        Session session = null;
+        try {
+            session = jsch.getSession(userName, host, port);
+            session.setPassword(passwd);
+            UserInfo userInfo = new User();
+            session.setUserInfo(userInfo);
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.connect();
+        } catch (JSchException e) {
+            e.printStackTrace();
+        }
+        return session;
     }
 
     /**
@@ -55,14 +83,8 @@ public class SshManager {
             return sshWritePool.get(sessionId);
         }
         try {
-            JSch jsch = new JSch();
-            Session session = jsch.getSession(USER, HOST, DEFAULT_SSH_PORT);
-            session.setPassword(PASSWORD);
-            UserInfo userInfo = new User();
-            session.setUserInfo(userInfo);
-            session.setConfig("StrictHostKeyChecking", "no");
+            Session session = getSshSession(USER, PASSWORD, HOST, DEFAULT_SSH_PORT);
 
-            session.connect();
 //            session.connect(30000);   // making a connection with timeout.
 
             Channel channel = session.openChannel("shell");
@@ -81,7 +103,7 @@ public class SshManager {
 
             Thread t2 = new Thread(() -> {
                 try {
-                    byte[] bytes = new byte[128];
+                    //byte[] bytes = new byte[128];
                     int data = readStream.read();
                     while (data != -1) {
                         if (webSocketSession != null && webSocketSession.isOpen()) {
