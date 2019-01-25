@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * The type Global config.
  */
 @SpringBootApplication
+//@MapperScan("com.meteorice.devilfish.dao")
 public class GlobalConfig {
 
     public static void main(String[] args) {

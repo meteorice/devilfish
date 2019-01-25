@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
     <contextName>logback</contextName>
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex"
+                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx"
+                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+    <!-- 彩色日志格式 -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="${CONSOLE_LOG_PATTERN:-%clr(%d{MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(-){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr([%4.4line]) %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+
     <!--输出到控制台-->
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <!--<filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
         <!--<level>ERROR</level>-->
         <!--</filter>-->
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %contextName [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <!--<pattern>%d{MM-dd HH:mm:ss.SSS, Asia/Shanghai} %clr(%5p) - [%15.15t] %cyan(%-40.40c{39})[%4.4line]: %m%n</pattern>-->
+            <charset>utf8</charset>
         </encoder>
     </appender>
 
@@ -21,7 +32,7 @@
         </encoder>
     </appender>
 
-    <root level="debug">
+    <root level="warn">
         <appender-ref ref="console"/>
         <!--<appender-ref ref="file"/>-->
     </root>
@@ -33,4 +44,6 @@
     <!--<logger name="com.dudu.controller.LearnController" level="WARN" additivity="false">-->
     <!--<appender-ref ref="console"/>-->
     <!--</logger>-->
+    <!-- 彩色日志依赖的渲染类 -->
+
 </configuration>

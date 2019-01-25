@@ -103,6 +103,7 @@ public class SshManager {
 
             Thread t2 = new Thread(() -> {
                 try {
+                    channel.connect();
                     //byte[] bytes = new byte[128];
                     int data = readStream.read();
                     while (data != -1) {
@@ -117,11 +118,13 @@ public class SshManager {
                     }
 
                 } catch (IOException e) {
+                } catch (JSchException e) {
+                    e.printStackTrace();
                 }
             });
             t2.start();
 
-            channel.connect();
+
             //channel.connect(30 * 1000);
             return pipeOut;
         } catch (Exception e) {

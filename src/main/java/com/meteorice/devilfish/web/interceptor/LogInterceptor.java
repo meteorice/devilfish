@@ -18,6 +18,7 @@ public class LogInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         logger.info("请求路径：{}", request.getRequestURI());
+        logger.debug("cookies = {}", request.getCookies());
         return true;
     }
 }

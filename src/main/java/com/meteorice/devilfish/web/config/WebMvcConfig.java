@@ -13,7 +13,7 @@ import org.springframework.web.servlet.handler.MappedInterceptor;
  * The type Web mvc confg.
  */
 @Configuration
-public class WebMvcConfg implements WebMvcConfigurer {
+public class WebMvcConfig implements WebMvcConfigurer {
 
     /**
      * 日志拦截器

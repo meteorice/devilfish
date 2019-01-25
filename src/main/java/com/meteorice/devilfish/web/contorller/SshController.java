@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
-//@RequestMapping("/ctrl/sessionId")
+@RequestMapping("/ssh")
 public class SshController {
 
-    private Logger log = LoggerFactory.getLogger(SshController.class);
+    private Logger logger = LoggerFactory.getLogger(SshController.class);
 
-    @RequestMapping(value = "/sessionId", method = GET)
+    @RequestMapping(value = "/getToken", method = GET)
 //    @ResponseBody
-    public String sessionId() {
+    public String getToken() {
         return SshManager.getToken();
     }
 }
