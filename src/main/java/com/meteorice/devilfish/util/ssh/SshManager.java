@@ -1,17 +1,15 @@
 package com.meteorice.devilfish.util.ssh;
 
 import com.jcraft.jsch.*;
+import com.meteorice.devilfish.util.uuid.UUIDUtil;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class SshManager {
     private static final String USER = "root";
@@ -24,25 +22,11 @@ public class SshManager {
     private static final ConcurrentMap<String, PipedOutputStream> sshWritePool = new ConcurrentHashMap();
 
     /**
-     * 按天重置的序号
-     */
-    private static final AtomicInteger tokenIds = new AtomicInteger(0);
-
-    /**
-     * 格式化日期
-     */
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("YYYYMMdd");
-
-    /**
-     * 获取令牌号
-     * TODO:以后要改成从数据库取，用存取异步的阻塞队列来发放，一次取一段数据缓冲
-     *
+     * 取令牌
      * @return
      */
-    public static String getToken() {
-        LocalDate now = LocalDate.now();
-        String format = now.format(dateTimeFormatter);
-        return String.format("%s_%04d", format, tokenIds.addAndGet(1));
+    public static String getToken() throws InterruptedException {
+        return UUIDUtil.getToken();
     }
 
 

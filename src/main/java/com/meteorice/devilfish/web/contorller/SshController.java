@@ -12,11 +12,15 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @RequestMapping("/ssh")
 public class SshController {
 
-    private Logger logger = LoggerFactory.getLogger(SshController.class);
+    private static Logger logger = LoggerFactory.getLogger(SshController.class);
 
     @RequestMapping(value = "/getToken", method = GET)
-//    @ResponseBody
     public String getToken() {
-        return SshManager.getToken();
+        try {
+            return SshManager.getToken();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return e.getMessage();
+        }
     }
 }
