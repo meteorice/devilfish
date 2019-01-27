@@ -1,5 +1,6 @@
 package com.meteorice.devilfish.web.contorller;
 
+import com.meteorice.devilfish.pojo.CommResult;
 import com.meteorice.devilfish.util.ssh.SshManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,12 +16,12 @@ public class SshController {
     private static Logger logger = LoggerFactory.getLogger(SshController.class);
 
     @RequestMapping(value = "/getToken", method = GET)
-    public String getToken() {
+    public CommResult getToken() {
         try {
-            return SshManager.getToken();
+            return CommResult.SUCCESS(SshManager.getToken());
         } catch (InterruptedException e) {
             e.printStackTrace();
-            return e.getMessage();
+            return CommResult.ERROR(e.getMessage());
         }
     }
 }

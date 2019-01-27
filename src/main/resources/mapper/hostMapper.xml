@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.meteorice.devilfish.dao.HostMapper">
+
+    <resultMap id="host" type="java.util.HashMap">
+        <id column="nodeid" property="key"/>
+        <result column="nodepid" property="pid"/>
+        <result column="hostip" property="ip"/>
+        <result column="nodedesc" property="title"/>
+        <result column="nodetype" property="type"/>
+    </resultMap>
+
+    <!-- 根据ID查询数据 -->
+    <select id="getTreeNode" parameterType="int" resultMap="host">
+        select * from t_host where nodepid = #{pid}
+    </select>
+
+</mapper>

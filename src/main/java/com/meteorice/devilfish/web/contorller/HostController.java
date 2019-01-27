@@ -1,13 +1,13 @@
 package com.meteorice.devilfish.web.contorller;
 
+import com.meteorice.devilfish.service.HostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -18,26 +18,13 @@ public class HostController {
 
     private Logger logger = LoggerFactory.getLogger(HostController.class);
 
+    @Autowired
+    HostService hostService;
+
     @RequestMapping(value = "/getTreeNode", method = GET)
-    public List getTreeNode(@RequestParam(name = "nodeId") String nodeId) {
+    public List getTreeNode(@RequestParam(name = "nodeId") int nodeId) {
         logger.info("传递参数：{}", nodeId);
-        List list = new ArrayList();
-        if ("0".equals(nodeId)) {
-            list.add(new HashMap() {
-                {
-                    put("title", "127.0.0.1");
-                    put("key", "11");
-                    put("value", "127.0.0.1");
-                }
-            });
-            list.add(new HashMap() {
-                {
-                    put("title", "127.0.0.2");
-                    put("key", "12");
-                    put("value", "127.0.0.2");
-                }
-            });
-        }
+        List list = hostService.getTreeNode(nodeId);
         return list;
     }
 

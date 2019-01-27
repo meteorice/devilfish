@@ -1,5 +1,6 @@
 package com.meteorice.devilfish.web.websocket.handler;
 
+import com.meteorice.devilfish.util.StrUtils;
 import com.meteorice.devilfish.util.ssh.SshManager;
 import com.meteorice.devilfish.web.config.WebSocketConfig;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.io.PipedOutputStream;
+import java.net.URI;
 import java.util.Map;
 
 /**
@@ -30,8 +32,10 @@ public class SshHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
         String payload = message.getPayload();
-        logger.debug("sessioinid = {}", session.getId());
-        PipedOutputStream writeStream = SshManager.getwriteStream(session.getId(), session);
+        URI uri = session.getUri();
+        Map<String,String> params = StrUtils.analysisUrl(uri.getQuery());
+        logger.debug("websocket token = {}", params.get("token"));
+        PipedOutputStream writeStream = SshManager.getwriteStream(params.get("token"), session);
         if (writeStream != null) {
             try {
                 writeStream.write(payload.getBytes());

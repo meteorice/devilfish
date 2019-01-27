@@ -2,16 +2,22 @@ package com.meteorice.devilfish.util.ssh;
 
 import com.jcraft.jsch.*;
 import com.meteorice.devilfish.util.uuid.UUIDUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class SshManager {
+
+    private static Logger logger = LoggerFactory.getLogger(SshManager.class);
+
     private static final String USER = "root";
     private static final String PASSWORD = "root";
     private static final String HOST = "10.211.55.14";
@@ -19,10 +25,11 @@ public class SshManager {
     /**
      * 执行命令IO管道的池
      */
-    private static final ConcurrentMap<String, PipedOutputStream> sshWritePool = new ConcurrentHashMap();
+    private static final ConcurrentMap<String, Pipeline> sshWritePool = new ConcurrentHashMap();
 
     /**
      * 取令牌
+     *
      * @return
      */
     public static String getToken() throws InterruptedException {
@@ -63,10 +70,16 @@ public class SshManager {
      * @return
      */
     public static PipedOutputStream getwriteStream(String sessionId, WebSocketSession webSocketSession) {
-        if (sshWritePool.containsKey(sessionId)) {
-            return sshWritePool.get(sessionId);
-        }
+
         try {
+            if (sshWritePool.containsKey(sessionId)) {
+                Pipeline pipeline = sshWritePool.get(sessionId);
+                if (pipeline.getWs() != null && !pipeline.getWs().isOpen()) {
+                    createReadThread(sessionId, webSocketSession, pipeline.getChannel());
+                }
+                return pipeline.getWrite();
+            }
+
             Session session = getSshSession(USER, PASSWORD, HOST, DEFAULT_SSH_PORT);
 
 //            session.connect(30000);   // making a connection with timeout.
@@ -78,16 +91,47 @@ public class SshManager {
 
             PipedInputStream pipeIn = new PipedInputStream();
             PipedOutputStream pipeOut = new PipedOutputStream(pipeIn);
-            sshWritePool.put(sessionId, pipeOut);
+            sshWritePool.put(sessionId, new Pipeline(webSocketSession, pipeOut, channel));
             channel.setInputStream(pipeIn);
 
+            createReadThread(sessionId, webSocketSession, channel);
+
+            channel.connect();
+            //channel.connect(30 * 1000);
+            return pipeOut;
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return null;
+    }
+
+
+    /**
+     * 建立channel和websocket的通道
+     *
+     * @param sessionId
+     * @param webSocketSession
+     * @param channel
+     */
+    public static void createReadThread(String sessionId, WebSocketSession webSocketSession, Channel channel) {
+
+        try {
+            Pipeline pipeline = sshWritePool.get(sessionId);
+//            pipeline.getWrite().write("\n".getBytes());
             PipedInputStream readStream = new PipedInputStream();
             PipedOutputStream writeStream = new PipedOutputStream(readStream);
             channel.setOutputStream(writeStream);
 
+            Thread last = pipeline.getThread();
+            if (last != null && last.isAlive() && !last.isInterrupted()) {
+                String name = last.getName();
+                //如果上次的线程还在就要中断它
+                logger.debug("interrupt thread : ({})", last);
+                last.interrupt();
+            }
+
             Thread t2 = new Thread(() -> {
                 try {
-                    channel.connect();
                     //byte[] bytes = new byte[128];
                     int data = readStream.read();
                     while (data != -1) {
@@ -95,26 +139,75 @@ public class SshManager {
                             webSocketSession.sendMessage(new TextMessage(String.valueOf((char) data)));
                         } else {
                             //删除池中的IO通道
-                            sshWritePool.remove(sessionId);
+//                            sshWritePool.remove(sessionId);
+                            logger.warn("tokenId : {} closed", sessionId);
                             return;
                         }
                         data = readStream.read();
                     }
 
                 } catch (IOException e) {
-                } catch (JSchException e) {
-                    e.printStackTrace();
+                    if (e instanceof InterruptedIOException) {
+                        logger.info("interrupt thread : {} probably refresh page", e.getStackTrace());
+                    } else {
+                        e.printStackTrace();
+                    }
                 }
-            });
+//                catch (JSchException e) {
+//                    e.printStackTrace();
+//                }
+            }, String.format("WS_%s_%s", sessionId, webSocketSession.getId()));
             t2.start();
-
-
-            //channel.connect(30 * 1000);
-            return pipeOut;
-        } catch (Exception e) {
-            System.out.println(e);
+            pipeline.setThread(t2);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return null;
+    }
+
+    static class Pipeline {
+        private WebSocketSession ws;
+        private PipedOutputStream write;
+        private Channel channel;
+        //在后台传输内容到websocket的线程只能有一个
+        private Thread thread = null;
+
+        public Pipeline(WebSocketSession ws, PipedOutputStream write, Channel channel) {
+            this.ws = ws;
+            this.write = write;
+            this.channel = channel;
+        }
+
+        public Thread getThread() {
+            return thread;
+        }
+
+        public void setThread(Thread thread) {
+            this.thread = thread;
+        }
+
+        public WebSocketSession getWs() {
+            return ws;
+        }
+
+        public void setWs(WebSocketSession ws) {
+            this.ws = ws;
+        }
+
+        public PipedOutputStream getWrite() {
+            return write;
+        }
+
+        public void setWrite(PipedOutputStream write) {
+            this.write = write;
+        }
+
+        public Channel getChannel() {
+            return channel;
+        }
+
+        public void setChannel(Channel channel) {
+            this.channel = channel;
+        }
     }
 
     static class User implements UserInfo {

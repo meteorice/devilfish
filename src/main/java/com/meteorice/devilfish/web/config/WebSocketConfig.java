@@ -48,7 +48,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(connectHandler(), "sshconnect/token={ip}")
+        registry.addHandler(connectHandler(), "sshconnect")
                 .setAllowedOrigins("*")
                 .addInterceptors(new WSInterceptor());
     }
