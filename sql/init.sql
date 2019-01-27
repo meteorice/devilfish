@@ -25,11 +25,12 @@ comment = '主机树表';
 
 insert into t_host (nodepid,nodedesc,nodetype) values (0,'集群',0);
 
-drop table if exists t_password_rule;
-create table if not exists t_password_rule (
+drop table if exists t_host_config_rule;
+create table if not exists t_host_config_rule (
   `ruleid`    int(10) not null auto_increment comment 'id' primary key,
-  `match`     varchar(512) not null comment '正则表达式',
+  `matchstr`     varchar(512) not null comment 'ip匹配表达式',
+  `timeout`   int(5)  not null default 20000  comment '连接超时时间',
   `loginname`  varchar(64)  not null comment '登录用户名',
-  `loginpwd`  varchar(512)  not null comment '登录密码',
+  `loginpwd`  varchar(512)  not null comment '登录密码'
 )
-comment = '密码规则表';
+comment = '主机配置表';

@@ -1,6 +1,10 @@
 package com.meteorice.devilfish.util.ssh;
 
 import com.jcraft.jsch.*;
+import com.meteorice.devilfish.pojo.Host;
+import com.meteorice.devilfish.pojo.HostConfig;
+import com.meteorice.devilfish.service.HostService;
+import com.meteorice.devilfish.util.spring.SpringContextHolder;
 import com.meteorice.devilfish.util.uuid.UUIDUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +22,6 @@ public class SshManager {
 
     private static Logger logger = LoggerFactory.getLogger(SshManager.class);
 
-    private static final String USER = "root";
-    private static final String PASSWORD = "root";
-    private static final String HOST = "10.211.55.14";
     private static final int DEFAULT_SSH_PORT = 22;
     /**
      * 执行命令IO管道的池
@@ -46,19 +47,16 @@ public class SshManager {
      * @param port     the port
      * @return the ssh session
      */
-    public static Session getSshSession(String userName, String passwd, String host, int port) {
+    public static Session getSshSession(String userName, String passwd, String host, int port, int timeout) throws JSchException {
         JSch jsch = new JSch();
         Session session = null;
-        try {
-            session = jsch.getSession(userName, host, port);
-            session.setPassword(passwd);
-            UserInfo userInfo = new User();
-            session.setUserInfo(userInfo);
-            session.setConfig("StrictHostKeyChecking", "no");
-            session.connect();
-        } catch (JSchException e) {
-            e.printStackTrace();
-        }
+        session = jsch.getSession(userName, host, port);
+        session.setPassword(passwd);
+        UserInfo userInfo = new User();
+        session.setUserInfo(userInfo);
+        session.setConfig("StrictHostKeyChecking", "no");
+        session.connect(timeout);
+
         return session;
     }
 
@@ -67,42 +65,69 @@ public class SshManager {
      *
      * @param sessionId        会话id
      * @param webSocketSession
+     * @param ip
      * @return
      */
-    public static PipedOutputStream getwriteStream(String sessionId, WebSocketSession webSocketSession) {
-
-        try {
-            if (sshWritePool.containsKey(sessionId)) {
-                Pipeline pipeline = sshWritePool.get(sessionId);
-                if (pipeline.getWs() != null && !pipeline.getWs().isOpen()) {
-                    createReadThread(sessionId, webSocketSession, pipeline.getChannel());
-                }
-                return pipeline.getWrite();
+    public static PipedOutputStream getwriteStream(String sessionId, WebSocketSession webSocketSession, String ip) throws JSchException, IOException {
+        HostService hostService = SpringContextHolder.getBean(HostService.class);
+        if (sshWritePool.containsKey(sessionId)) {
+            Pipeline pipeline = sshWritePool.get(sessionId);
+            if (pipeline.getChannel().isClosed()) {
+                clearPipeline(sessionId);
+                throw new JSchException("channel is closed , confirm host is online please");
             }
-
-            Session session = getSshSession(USER, PASSWORD, HOST, DEFAULT_SSH_PORT);
+            if (pipeline.getWs() != null && !pipeline.getWs().isOpen()) {
+                createReadThread(sessionId, webSocketSession, pipeline.getChannel());
+            }
+            return pipeline.getWrite();
+        }
+        HostConfig hostConfig = hostService.getHostConfig(ip);
+        Host host = hostService.getHost(ip);
+        Session session = getSshSession(hostConfig.getLoginname(), hostConfig.getLoginpwd(), ip, host.getPort() != null ? host.getPort() : DEFAULT_SSH_PORT, hostConfig.getTimeout());
 
 //            session.connect(30000);   // making a connection with timeout.
 
-            Channel channel = session.openChannel("shell");
+        Channel channel = session.openChannel("shell");
 
-            // Enable agent-forwarding.
-            ((ChannelShell) channel).setAgentForwarding(true);
+        // Enable agent-forwarding.
+        ((ChannelShell) channel).setAgentForwarding(true);
 
-            PipedInputStream pipeIn = new PipedInputStream();
-            PipedOutputStream pipeOut = new PipedOutputStream(pipeIn);
-            sshWritePool.put(sessionId, new Pipeline(webSocketSession, pipeOut, channel));
-            channel.setInputStream(pipeIn);
+        PipedInputStream pipeIn = new PipedInputStream();
+        PipedOutputStream pipeOut = new PipedOutputStream(pipeIn);
+        sshWritePool.put(sessionId, new Pipeline(webSocketSession, pipeOut, channel));
+        channel.setInputStream(pipeIn);
 
-            createReadThread(sessionId, webSocketSession, channel);
+        createReadThread(sessionId, webSocketSession, channel);
 
-            channel.connect();
-            //channel.connect(30 * 1000);
-            return pipeOut;
-        } catch (Exception e) {
-            System.out.println(e);
+        channel.connect(hostConfig.getTimeout());
+        //channel.connect(30 * 1000);
+        return pipeOut;
+    }
+
+    /**
+     * 清除池中的会话
+     * @param sessionId
+     */
+    public static void clearPipeline(String sessionId) {
+        logger.info("clear pipeline {} start", sessionId);
+        Pipeline pipeline = sshWritePool.remove(sessionId);
+        Thread thread = pipeline.getThread();
+        Channel channel = pipeline.getChannel();
+        PipedOutputStream write = pipeline.getWrite();
+        if (thread.isAlive() && !thread.isInterrupted()) {
+            thread.interrupt();
         }
-        return null;
+        if (channel != null & channel.isConnected()) {
+            channel.disconnect();
+        }
+        if (write != null) {
+            try {
+                write.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        logger.info("clear pipeline {} end", sessionId);
     }
 
 

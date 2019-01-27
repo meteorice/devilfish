@@ -6,11 +6,11 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ApplicationContextProvider implements ApplicationContextAware {
+public class SpringContextHolder implements ApplicationContextAware {
     /**
      * 上下文对象实例
      */
-    private ApplicationContext applicationContext;
+    private static ApplicationContext applicationContext;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -22,7 +22,8 @@ public class ApplicationContextProvider implements ApplicationContextAware {
      *
      * @return
      */
-    public ApplicationContext getApplicationContext() {
+    public static ApplicationContext getApplicationContext() {
+        assertApplicationContext();
         return applicationContext;
     }
 
@@ -32,8 +33,9 @@ public class ApplicationContextProvider implements ApplicationContextAware {
      * @param name
      * @return
      */
-    public Object getBean(String name) {
-        return getApplicationContext().getBean(name);
+    public static <T> T getBean(String name) {
+        assertApplicationContext();
+        return (T) getApplicationContext().getBean(name);
     }
 
     /**
@@ -43,7 +45,8 @@ public class ApplicationContextProvider implements ApplicationContextAware {
      * @param <T>
      * @return
      */
-    public <T> T getBean(Class<T> clazz) {
+    public static <T> T getBean(Class<T> clazz) {
+        assertApplicationContext();
         return getApplicationContext().getBean(clazz);
     }
 
@@ -55,7 +58,14 @@ public class ApplicationContextProvider implements ApplicationContextAware {
      * @param <T>
      * @return
      */
-    public <T> T getBean(String name, Class<T> clazz) {
+    public static <T> T getBean(String name, Class<T> clazz) {
+        assertApplicationContext();
         return getApplicationContext().getBean(name, clazz);
+    }
+
+    private static void assertApplicationContext() {
+        if (applicationContext == null) {
+            throw new RuntimeException("applicaitonContext属性为null,请检查是否注入了SpringContextHolder!");
+        }
     }
 }

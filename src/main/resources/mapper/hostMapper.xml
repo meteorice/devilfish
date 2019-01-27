@@ -5,18 +5,47 @@
 <!-- namespace必须指向Dao接口 -->
 <mapper namespace="com.meteorice.devilfish.dao.HostMapper">
 
-    <resultMap id="host" type="java.util.HashMap">
+    <resultMap id="host" type="com.meteorice.devilfish.pojo.Host">
         <id column="nodeid" property="key"/>
         <result column="nodepid" property="pid"/>
         <result column="hostip" property="ip"/>
-        <!--<result column="sshport" property="port"/>-->
+        <result column="sshport" property="port"/>
         <result column="nodedesc" property="title"/>
         <result column="nodetype" property="type"/>
+    </resultMap>
+
+    <resultMap id="hostConfig" type="com.meteorice.devilfish.pojo.HostConfig">
+        <id column="ruleid" property="ruleid"/>
+        <result column="matchstr" property="matchstr"/>
+        <result column="loginname" property="loginname"/>
+        <result column="loginpwd" property="loginpwd"/>
+        <result column="timeout" property="timeout"/>
     </resultMap>
 
     <!-- 根据ID查询数据 -->
     <select id="getTreeNode" parameterType="int" resultMap="host">
         select * from t_host where nodepid = #{pid}
+    </select>
+
+    <select id="getHost" parameterType="String" resultMap="host">
+        select * from t_host where hostip = #{hostip}
+    </select>
+
+    <select id="getHostConfig" parameterType="String" resultMap="hostConfig">
+        SELECT
+        CASE
+            WHEN
+                matchstr = #{ip} THEN
+                    10000 ELSE ruleid
+                END ruleid,
+            timeout,
+            matchstr,
+            loginname,
+            loginpwd
+        FROM
+            t_host_config_rule
+        WHERE #{ip} REGEXP matchstr
+        ORDER BY ruleid DESC
     </select>
 
 </mapper>

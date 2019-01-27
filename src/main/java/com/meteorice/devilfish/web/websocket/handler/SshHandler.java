@@ -1,5 +1,6 @@
 package com.meteorice.devilfish.web.websocket.handler;
 
+import com.jcraft.jsch.JSchException;
 import com.meteorice.devilfish.util.StrUtils;
 import com.meteorice.devilfish.util.ssh.SshManager;
 import com.meteorice.devilfish.web.config.WebSocketConfig;
@@ -33,36 +34,25 @@ public class SshHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
         String payload = message.getPayload();
         URI uri = session.getUri();
-        Map<String,String> params = StrUtils.analysisUrl(uri.getQuery());
+        Map<String, String> params = StrUtils.analysisUrl(uri.getQuery());
         logger.debug("websocket token = {}", params.get("token"));
-        PipedOutputStream writeStream = SshManager.getwriteStream(params.get("token"), session);
-        if (writeStream != null) {
+        PipedOutputStream writeStream = null;
+        try {
+            writeStream = SshManager.getwriteStream(params.get("token"), session, params.get("ip"));
+            writeStream.write(payload.getBytes());
+        } catch (JSchException e) {
             try {
-                writeStream.write(payload.getBytes());
-            } catch (IOException e) {
-                e.printStackTrace();
+                session.sendMessage(new TextMessage(e.getMessage() + "\n"));
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-//
-//        try {
-//            Map<String, String> req = JsonUtil.getJsonMapper().readValue(payload, HashMap.class);
-//            if (req.containsKey("sessionId")) {
-//                String sessionId = String.valueOf(req.get("sessionId"));
-//                String cmd = req.get("cmd");
-//                PipedOutputStream writeStream = SshManager.getwriteStream(sessionId, session);
-//                if (writeStream != null) {
-//                    writeStream.write(cmd.getBytes());
-//                }
-//            } else {
-//                session.sendMessage(new TextMessage("reconnection"));
-//            }
-//        } catch (IOException ex) {
-//            logger.error(ex.getMessage());
-//        }
     }
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    public void afterConnectionEstablished(WebSocketSession session) {
         WebSocketConfig.addOnlineCount();
         logger.info("xxx用户进入系统。。。");
         logger.info("用户信息:" + session.getAttributes());
@@ -74,13 +64,17 @@ public class SshHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void handleTransportError(WebSocketSession session, Throwable ex) throws Exception {
-        session.close(CloseStatus.SERVER_ERROR);
+    public void handleTransportError(WebSocketSession session, Throwable ex) {
+        try {
+            session.close(CloseStatus.SERVER_ERROR);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         logger.debug("Error {} WebSocket connection closed.{}", ex.getMessage(), session);
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         WebSocketConfig.subOnlineCount();
         logger.debug("WebSocket connection closed. {} ", session);
     }
