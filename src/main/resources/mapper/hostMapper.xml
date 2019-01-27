@@ -9,6 +9,7 @@
         <id column="nodeid" property="key"/>
         <result column="nodepid" property="pid"/>
         <result column="hostip" property="ip"/>
+        <!--<result column="sshport" property="port"/>-->
         <result column="nodedesc" property="title"/>
         <result column="nodetype" property="type"/>
     </resultMap>

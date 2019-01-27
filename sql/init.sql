@@ -17,6 +17,7 @@ create table if not exists t_host (
   `nodeid`        int(10) not null auto_increment comment 'id' primary key,
   `nodepid`       int(10) not null comment 'pid',
   `hostip`        varchar(30) comment '主机ip',
+  `sshport`       int(5)  not null default 22  comment 'ssh通讯端口',
   `nodedesc`      varchar(30) comment '描述',
   `nodetype`      int(1)  not null default 1 comment '节点类型0:目录 1:机器'
 )
