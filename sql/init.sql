@@ -34,3 +34,17 @@ create table if not exists t_host_config_rule (
   `loginpwd`  varchar(512)  not null comment '登录密码'
 )
 comment = '主机配置表';
+
+drop table if exists t_ssh_log;
+create table if not exists t_ssh_log (
+  `sshtime`   datetime comment '会话建立时间',
+	`fieldyear` varchar(4)  not null comment '年',
+	`fieldmonth` varchar(2)  not null comment '月',
+	`ddate`			varchar(10)		not null comment '年月日',
+	`dtime`			varchar(8)		not null comment '时分秒',
+	`username`  varchar(64)  not null comment '登录用户名',
+	`hostinfo`  varchar(512) comment '主机信息',
+	index `idx_t_ssh_log_fieldyear`(`fieldyear`),
+	index `idx_t_ssh_log_username`(`username`)
+)
+comment = 'ssh登录日志表';

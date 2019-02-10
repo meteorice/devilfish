@@ -49,10 +49,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                 .logoutSuccessUrl("/login").permitAll()
-                .and();
-//                .authorizeRequests()    // 定义哪些URL需要被保护、哪些不需要被保护
-//                .anyRequest()           // 任何请求,登录后可以访问
-//                .authenticated()
+                .and()
+                .authorizeRequests()    // 定义哪些URL需要被保护、哪些不需要被保护
+                .anyRequest()           // 任何请求,登录后可以访问
+                .authenticated();
 //                .and()
         http.csrf().disable();
     }

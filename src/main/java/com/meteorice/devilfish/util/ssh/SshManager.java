@@ -4,6 +4,7 @@ import com.jcraft.jsch.*;
 import com.meteorice.devilfish.pojo.Host;
 import com.meteorice.devilfish.pojo.HostConfig;
 import com.meteorice.devilfish.service.HostService;
+import com.meteorice.devilfish.util.ThreadUtil;
 import com.meteorice.devilfish.util.spring.SpringContextHolder;
 import com.meteorice.devilfish.util.uuid.UUIDUtil;
 import org.slf4j.Logger;
@@ -101,11 +102,17 @@ public class SshManager {
 
         channel.connect(hostConfig.getTimeout());
         //channel.connect(30 * 1000);
+        //分出一个线程执行日志记录
+        ThreadUtil.permanentTask(() -> {
+            String hostinfo = String.format("[%s] %s@%s -p%s", sessionId, hostConfig.getLoginname(), ip, host.getPort());
+            hostService.sshLog(webSocketSession.getPrincipal().getName(), hostinfo);
+        }, String.format("%s-%s", "sshLog", sessionId));
         return pipeOut;
     }
 
     /**
      * 清除池中的会话
+     *
      * @param sessionId
      */
     public static void clearPipeline(String sessionId) {

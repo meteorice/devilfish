@@ -9,7 +9,7 @@ public class CommResult {
     /**
      * 返回消息
      */
-    public String message = "";
+    public Object message = "";
     /**
      * 是否正常
      */
@@ -21,7 +21,7 @@ public class CommResult {
      * @param message
      * @return
      */
-    public static CommResult SUCCESS(String message) {
+    public static CommResult SUCCESS(Object message) {
         return new CommResult(true,message);
     }
 
@@ -30,20 +30,20 @@ public class CommResult {
      * @param message
      * @return
      */
-    public static CommResult ERROR(String message) {
+    public static CommResult ERROR(Object message) {
         return new CommResult(false,message);
     }
 
-    private CommResult(Boolean flag, String message) {
+    private CommResult(Boolean flag, Object message) {
         this.flag = flag;
         this.message = message;
     }
 
-    public String getMessage() {
+    public Object getMessage() {
         return message;
     }
 
-    public void setMessage(String message) {
+    public void setMessage(Object message) {
         this.message = message;
     }
 

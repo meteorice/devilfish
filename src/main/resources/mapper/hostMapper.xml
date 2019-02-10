@@ -31,6 +31,10 @@
         select * from t_host where hostip = #{hostip}
     </select>
 
+    <select id="getAuth" parameterType="String" resultMap="hostConfig">
+        select * from t_host_config_rule where matchstr = #{ip}
+    </select>
+
     <select id="getHostConfig" parameterType="String" resultMap="hostConfig">
         SELECT
         CASE
@@ -46,6 +50,16 @@
             t_host_config_rule
         WHERE #{ip} REGEXP matchstr
         ORDER BY ruleid DESC
+    </select>
+
+    <insert id="sshLog" parameterType="map">
+        insert into t_ssh_log (sshtime,fieldyear,fieldmonth,ddate,dtime,username,hostinfo)
+        values (#{sshtime},#{fieldyear},#{fieldmonth},#{ddate},#{dtime},#{username},#{hostinfo})
+    </insert>
+
+    <select id="getSshLog" parameterType="String" resultType="map">
+        select fieldyear,fieldmonth,ddate,count(1) times from t_ssh_log where fieldyear = #{fieldyear}
+        group by fieldyear,fieldmonth,ddate
     </select>
 
 </mapper>
