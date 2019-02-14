@@ -4,6 +4,8 @@ package com.meteorice.devilfish.web.contorller;
 import com.meteorice.devilfish.pojo.CommResult;
 import com.meteorice.devilfish.service.HostService;
 import com.meteorice.devilfish.util.json.JsonUtil;
+import com.meteorice.devilfish.util.ssh.SshManager;
+import com.meteorice.devilfish.web.config.WebSocketConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 @RestController
@@ -41,5 +45,14 @@ public class DashboardController {
         List list = JsonUtil.getJsonMapper().readValue(sb.toString(), List.class);
 
         return CommResult.SUCCESS(list);
+    }
+
+    @GetMapping(value = "getDashboard")
+    public CommResult getDashboard() {
+        Map<String, Integer> map = new HashMap();
+        map.put("wssession", WebSocketConfig.getOnlineCount());
+        map.put("sshsession", SshManager.getSshSessionCount());
+        map.put("hostcount", hostService.getHostCount());
+        return CommResult.SUCCESS(map);
     }
 }

@@ -38,6 +38,14 @@ public class SshManager {
         return UUIDUtil.getToken();
     }
 
+    /**
+     * 获取ssh会话的数量
+     * @return
+     */
+    public static int getSshSessionCount(){
+        return sshWritePool.size();
+    }
+
 
     /**
      * Gets ssh session.

@@ -6,6 +6,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
@@ -18,6 +21,20 @@ public class DateTimeUtil {
     private final static DateTimeFormatter formatter_fulldate = DateTimeFormatter.ofPattern("YYYY-MM-dd HH:mm:ss");
     private final static DateTimeFormatter formatter_time = DateTimeFormatter.ofPattern("HH:mm:ss");
 
+    private static List<Integer> fullHoursList;
+
+    static {
+        fullHoursList = Stream.iterate(0, item -> item + 1).limit(24)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 返回
+     * @return
+     */
+    public static List<Integer> getFullHoursList() {
+        return fullHoursList;
+    }
     /**
      * 将timestamp转为LocalDateTime
      *

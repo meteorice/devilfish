@@ -76,6 +76,9 @@ public class SshHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         WebSocketConfig.subOnlineCount();
+        URI uri = session.getUri();
+        Map<String, String> params = StrUtils.analysisUrl(uri.getQuery());
+        SshManager.clearPipeline(params.get("token"));
         logger.debug("WebSocket connection closed. {} ", session);
     }
 

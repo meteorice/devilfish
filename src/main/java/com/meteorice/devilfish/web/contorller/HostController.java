@@ -45,4 +45,9 @@ public class HostController {
         return CommResult.SUCCESS(hostService.getSshLog(DateTimeUtil.getYear()));
     }
 
+    @GetMapping(value = "/getSshLogDetail")
+    public CommResult getSshLogDetail(@RequestParam(name = "date") String date) {
+        return CommResult.SUCCESS(hostService.getFullHoursSshLogDetail(date));
+    }
+
 }

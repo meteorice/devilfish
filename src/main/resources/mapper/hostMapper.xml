@@ -62,4 +62,14 @@
         group by fieldyear,fieldmonth,ddate
     </select>
 
+    <select id="getSshLogDetail" parameterType="String" resultType="map">
+        select t.time,count(1) times from (
+          select date_format(sshtime, '%H') time from t_ssh_log where ddate = #{date}
+        ) t group by time order by time
+    </select>
+
+    <select id="getHostCount" resultType="int">
+        select count(1) count from t_host where nodetype = 1
+    </select>
+
 </mapper>

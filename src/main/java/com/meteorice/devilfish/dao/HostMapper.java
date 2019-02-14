@@ -27,4 +27,8 @@ public interface HostMapper {
 
     List getSshLog(String fieldyear);
 
+    List getSshLogDetail(String date);
+
+    int getHostCount();
+
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,4 +93,39 @@ public class HostService {
     public List getSshLog(String fieldyear) {
         return hostMapper.getSshLog(fieldyear);
     }
+
+    public List getSshLogDetail(String date) {
+        return hostMapper.getSshLogDetail(date);
+    }
+
+    /**
+     * 获得满24小时的数据
+     *
+     * @param date
+     * @return
+     */
+    public List getFullHoursSshLogDetail(String date) {
+        List<Map> list = getSshLogDetail(date);
+        List<Integer> timelist = DateTimeUtil.getFullHoursList();
+        List<Integer> res = new ArrayList<>();
+        int p = -1, z = 0;
+        for (int i = 0; i < list.size(); i++) {
+            Map map = list.get(i);
+            p = Integer.valueOf((String) map.get("time"));
+            for (int j = z; j < p; j++) {
+                res.add(0);
+            }
+            z = ++p;
+            res.add(((Long) map.get("times")).intValue());
+        }
+        for (; p < timelist.size(); p++) {
+            res.add(0);
+        }
+        return res;
+    }
+
+    public int getHostCount(){
+        return hostMapper.getHostCount();
+    }
+
 }
