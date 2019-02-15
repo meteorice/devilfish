@@ -4,10 +4,15 @@ import org.apache.ibatis.type.Alias;
 
 @Alias("hostConfig")
 public class HostConfig {
+
+//    @NotBlank(message = "规则id不能为空")
     Integer ruleid;
     Integer timeout;
+//    @NotBlank(message = "规则不能为空")
     String matchstr;
+//    @NotBlank(message = "用户名不能为空")
     String loginname;
+//    @NotBlank(message = "密码不能为空")
     String loginpwd;
 
     public Integer getTimeout() {

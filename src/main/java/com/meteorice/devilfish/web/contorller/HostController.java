@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -35,9 +36,15 @@ public class HostController {
     }
 
     @PostMapping(value = "setAuth")
-    public CommResult setAuth(HostConfig hostConfig) {
+    public CommResult setAuth(@Valid @RequestBody HostConfig hostConfig) {
+        if(hostConfig.getRuleid() == -1){
+            hostService.setAuth(hostConfig);
+            return CommResult.SUCCESS("增加成功");
+        } else {
+            hostService.updateAuth(hostConfig);
+            return CommResult.SUCCESS("修改成功");
+        }
 
-        return CommResult.SUCCESS("");
     }
 
     @GetMapping(value = "/getSshLog")

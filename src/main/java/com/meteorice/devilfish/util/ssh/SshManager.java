@@ -40,9 +40,10 @@ public class SshManager {
 
     /**
      * 获取ssh会话的数量
+     *
      * @return
      */
-    public static int getSshSessionCount(){
+    public static int getSshSessionCount() {
         return sshWritePool.size();
     }
 
@@ -126,20 +127,22 @@ public class SshManager {
     public static void clearPipeline(String sessionId) {
         logger.info("clear pipeline {} start", sessionId);
         Pipeline pipeline = sshWritePool.remove(sessionId);
-        Thread thread = pipeline.getThread();
-        Channel channel = pipeline.getChannel();
-        PipedOutputStream write = pipeline.getWrite();
-        if (thread.isAlive() && !thread.isInterrupted()) {
-            thread.interrupt();
-        }
-        if (channel != null & channel.isConnected()) {
-            channel.disconnect();
-        }
-        if (write != null) {
-            try {
-                write.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+        if (pipeline != null) {
+            Thread thread = pipeline.getThread();
+            Channel channel = pipeline.getChannel();
+            PipedOutputStream write = pipeline.getWrite();
+            if (thread.isAlive() && !thread.isInterrupted()) {
+                thread.interrupt();
+            }
+            if (channel != null & channel.isConnected()) {
+                channel.disconnect();
+            }
+            if (write != null) {
+                try {
+                    write.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         logger.info("clear pipeline {} end", sessionId);

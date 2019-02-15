@@ -90,6 +90,15 @@ public class HostService {
         hostMapper.sshLog(map);
     }
 
+    public void setAuth(HostConfig hostConfig){
+        hostMapper.setAuth(hostConfig);
+    }
+
+    public void updateAuth(HostConfig hostConfig){
+        hostMapper.updateAuth(hostConfig);
+    }
+
+
     public List getSshLog(String fieldyear) {
         return hostMapper.getSshLog(fieldyear);
     }

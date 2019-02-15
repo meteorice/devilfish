@@ -31,4 +31,7 @@ public interface HostMapper {
 
     int getHostCount();
 
+    void setAuth(HostConfig hostConfig);
+
+    void updateAuth(HostConfig hostConfig);
 }

@@ -72,4 +72,13 @@
         select count(1) count from t_host where nodetype = 1
     </select>
 
+    <insert id="setAuth" parameterType="com.meteorice.devilfish.pojo.HostConfig">
+        insert into t_host_config_rule (matchstr,timeout,loginname,loginpwd)
+        values (#{matchstr},#{timeout},#{loginname},#{loginpwd})
+    </insert>
+
+    <update id="updateAuth" parameterType="com.meteorice.devilfish.pojo.HostConfig">
+        update t_host_config_rule set matchstr=#{matchstr} , timeout=#{timeout} , loginname=#{loginname}
+        , loginpwd=#{loginpwd} where ruleid=#{ruleid}
+    </update>
 </mapper>
